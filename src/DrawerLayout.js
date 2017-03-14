@@ -291,6 +291,7 @@ export default class DrawerLayout extends Component {
   }
 
   @autobind _panResponderRelease(e, { moveX, vx }) {
+    if (!dx || !dy) return false;
     const { drawerPosition } = this.props;
     const previouslyOpen = this._isClosing;
     const isWithinVelocityThreshold = vx < VX_MAX && vx > -VX_MAX;
