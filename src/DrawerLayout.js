@@ -56,6 +56,7 @@ export default class DrawerLayout extends Component {
 
     this.state = {
       openValue: new Animated.Value(0),
+      overlayOpacityValue: new Animated.Value(0),
       drawerShown: false,
     };
   }
@@ -129,20 +130,13 @@ export default class DrawerLayout extends Component {
       inputRange: [0, 1],
       outputRange,
       extrapolate: 'clamp',
-      useNativeDrive: true,
     });
     const animatedDrawerStyles = {
       transform: [{ translateX: drawerTranslateX }],
     };
 
     /* Overlay styles */
-    const overlayOpacity = openValue.interpolate({
-      inputRange: [0, 1],
-      outputRange: [0, 0.7],
-      extrapolate: 'clamp',
-      useNativeDriver: true,
-    });
-    const animatedOverlayStyles = { opacity: overlayOpacity };
+    const animatedOverlayStyles = { opacity: this.state.overlayOpacityValue };
 
     return (
       <View
@@ -179,15 +173,12 @@ export default class DrawerLayout extends Component {
     }
   }
 
-  @autobind openDrawer(options = {}) {
+  @autobind openDrawer(options) {
     this._emitStateChanged(SETTLING);
-    Animated.spring(this.state.openValue, {
-        toValue: 1,
-        bounciness: 0,
-        restSpeedThreshold: 0.1,
-        useNativeDriver: true,
-        ...options,
-      })
+    Animated.parallel([
+        this._animateDrawerPosition(1, options),
+        this._animateOverlayOpacity(0.7, options),
+      ])
       .start(() => {
         if (this.props.onDrawerOpen) {
           this.props.onDrawerOpen();
@@ -196,21 +187,38 @@ export default class DrawerLayout extends Component {
       });
   }
 
-  @autobind closeDrawer(options = {}) {
+  @autobind closeDrawer(options) {
     this._emitStateChanged(SETTLING);
-    Animated.spring(this.state.openValue, {
-        toValue: 0,
-        bounciness: 0,
-        restSpeedThreshold: 1,
-        useNativeDriver: true,
-        ...options,
-      })
+    Animated.parallel([
+        this._animateDrawerPosition(0, options),
+        this._animateOverlayOpacity(0, options),
+      ])
       .start(() => {
         if (this.props.onDrawerClose) {
           this.props.onDrawerClose();
         }
         this._emitStateChanged(IDLE);
       });
+  }
+
+  @autobind _animateDrawerPosition(toValue, options = {}) {
+    return Animated.spring(this.state.openValue, {
+      toValue,
+      bounciness: 0,
+      restSpeedThreshold: 0.1,
+      useNativeDriver: true,
+      ...options,
+    });
+  }
+
+  @autobind _animateOverlayOpacity(toValue, options = {}) {
+    return Animated.spring(this.state.overlayOpacityValue, {
+      toValue,
+      bounciness: 0,
+      restSpeedThreshold: 0.1,
+      useNativeDriver: true,
+      ...options,
+    });
   }
 
   @autobind _handleDrawerOpen() {
