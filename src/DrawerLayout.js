@@ -67,7 +67,9 @@ export default class DrawerLayout extends Component {
     openValue.addListener(({ value }) => {
       const drawerShown = value > 0;
       if (drawerShown !== this.state.drawerShown) {
-        this.setState({ drawerShown });
+        this.setState({
+          drawerShown,
+        });
       }
 
       if (this.props.keyboardDismissMode === 'on-drag') {
@@ -85,7 +87,11 @@ export default class DrawerLayout extends Component {
 
       this._lastOpenValue = value;
       if (this.props.onDrawerSlide) {
-        this.props.onDrawerSlide({ nativeEvent: { offset: value } });
+        this.props.onDrawerSlide({
+          nativeEvent: {
+            offset: value,
+          },
+        });
       }
     });
 
@@ -100,16 +106,9 @@ export default class DrawerLayout extends Component {
   }
 
   render() {
-    const {
-      drawerShown,
-      openValue,
-    } = this.state;
+    const { drawerShown, openValue } = this.state;
 
-    const {
-      drawerBackgroundColor,
-      drawerPosition,
-      drawerWidth,
-    } = this.props;
+    const { drawerBackgroundColor, drawerPosition, drawerWidth } = this.props;
 
     const dynamicDrawerStyles = {
       backgroundColor: drawerBackgroundColor,
@@ -132,25 +131,44 @@ export default class DrawerLayout extends Component {
       extrapolate: 'clamp',
     });
     const animatedDrawerStyles = {
-      transform: [{ translateX: drawerTranslateX }],
+      transform: [
+        {
+          translateX: drawerTranslateX,
+        },
+      ],
     };
 
     /* Overlay styles */
-    const animatedOverlayStyles = { opacity: this.state.overlayOpacityValue };
+    const overlayOpacity = openValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: [0, 0.7],
+      extrapolate: 'clamp',
+    });
+    const animatedOverlayStyles = {
+      opacity: overlayOpacity,
+    };
 
+    const pointerEvents = drawerShown ? 'auto' : 'none';
     return (
       <View
-        style={{ flex: 1, backgroundColor: 'transparent' }}
+        style={{
+          flex: 1,
+          backgroundColor: 'transparent',
+        }}
         {...this._panResponder.panHandlers}
       >
         <Animated.View style={styles.main}>
           {this.props.children}
         </Animated.View>
-
-        {drawerShown &&
-          <TouchableWithoutFeedback onPress={this._onOverlayClick}>
-            <Animated.View style={[styles.overlay, animatedOverlayStyles]} />
-          </TouchableWithoutFeedback>}
+        <TouchableWithoutFeedback
+          pointerEvents={pointerEvents}
+          onPress={this._onOverlayClick}
+        >
+          <Animated.View
+            pointerEvents={pointerEvents}
+            style={[styles.overlay, animatedOverlayStyles]}
+          />
+        </TouchableWithoutFeedback>
         <Animated.View
           style={[styles.drawer, dynamicDrawerStyles, animatedDrawerStyles]}
         >
@@ -175,10 +193,13 @@ export default class DrawerLayout extends Component {
 
   @autobind openDrawer(options) {
     this._emitStateChanged(SETTLING);
-    Animated.parallel([
-        this._animateDrawerPosition(1, options),
-        this._animateOverlayOpacity(0.7, options),
-      ])
+    Animated.spring(this.state.openValue, {
+        toValue: 1,
+        bounciness: 0,
+        restSpeedThreshold: 0.1,
+        useNativeDriver: true,
+        ...options,
+      })
       .start(() => {
         if (this.props.onDrawerOpen) {
           this.props.onDrawerOpen();
@@ -189,36 +210,19 @@ export default class DrawerLayout extends Component {
 
   @autobind closeDrawer(options) {
     this._emitStateChanged(SETTLING);
-    Animated.parallel([
-        this._animateDrawerPosition(0, options),
-        this._animateOverlayOpacity(0, options),
-      ])
+    Animated.spring(this.state.openValue, {
+        toValue: 0,
+        bounciness: 0,
+        restSpeedThreshold: 1,
+        useNativeDriver: true,
+        ...options,
+      })
       .start(() => {
         if (this.props.onDrawerClose) {
           this.props.onDrawerClose();
         }
         this._emitStateChanged(IDLE);
       });
-  }
-
-  @autobind _animateDrawerPosition(toValue, options = {}) {
-    return Animated.spring(this.state.openValue, {
-      toValue,
-      bounciness: 0,
-      restSpeedThreshold: 0.1,
-      useNativeDriver: true,
-      ...options,
-    });
-  }
-
-  @autobind _animateOverlayOpacity(toValue, options = {}) {
-    return Animated.spring(this.state.overlayOpacityValue, {
-      toValue,
-      bounciness: 0,
-      restSpeedThreshold: 0.1,
-      useNativeDriver: true,
-      ...options,
-    });
   }
 
   @autobind _handleDrawerOpen() {
@@ -315,13 +319,17 @@ export default class DrawerLayout extends Component {
         vx >= VX_MAX ||
         (isWithinVelocityThreshold && previouslyOpen && moveX > THRESHOLD)
       ) {
-        this.openDrawer({ velocity: vx });
+        this.openDrawer({
+          velocity: vx,
+        });
       } else if (
         (vx < 0 && moveX < THRESHOLD) ||
         vx < -VX_MAX ||
         (isWithinVelocityThreshold && !previouslyOpen)
       ) {
-        this.closeDrawer({ velocity: vx });
+        this.closeDrawer({
+          velocity: vx,
+        });
       } else if (previouslyOpen) {
         this.openDrawer();
       } else {
@@ -335,13 +343,17 @@ export default class DrawerLayout extends Component {
         vx <= -VX_MAX ||
         (isWithinVelocityThreshold && previouslyOpen && moveX < THRESHOLD)
       ) {
-        this.openDrawer({ velocity: (-1) * vx });
+        this.openDrawer({
+          velocity: (-1) * vx,
+        });
       } else if (
         (vx > 0 && moveX > THRESHOLD) ||
         vx > VX_MAX ||
         (isWithinVelocityThreshold && !previouslyOpen)
       ) {
-        this.closeDrawer({ velocity: (-1) * vx });
+        this.closeDrawer({
+          velocity: (-1) * vx,
+        });
       } else if (previouslyOpen) {
         this.openDrawer();
       } else {

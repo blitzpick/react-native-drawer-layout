@@ -150,7 +150,9 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
           var value = _ref.value;
           var drawerShown = value > 0;
           if (drawerShown !== _this2.state.drawerShown) {
-            _this2.setState({ drawerShown: drawerShown });
+            _this2.setState({
+              drawerShown: drawerShown,
+            });
           }
 
           if (_this2.props.keyboardDismissMode === 'on-drag') {
@@ -170,7 +172,11 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
 
           _this2._lastOpenValue = value;
           if (_this2.props.onDrawerSlide) {
-            _this2.props.onDrawerSlide({ nativeEvent: { offset: value } });
+            _this2.props.onDrawerSlide({
+              nativeEvent: {
+                offset: value,
+              },
+            });
           }
         });
 
@@ -219,16 +225,32 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
         });
 
         var animatedDrawerStyles = {
-          transform: [{ translateX: drawerTranslateX }],
+          transform: [
+            {
+              translateX: drawerTranslateX,
+            },
+          ],
         };
 
-        var animatedOverlayStyles = { opacity: this.state.overlayOpacityValue };
+        var overlayOpacity = openValue.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, 0.7],
+          extrapolate: 'clamp',
+        });
 
+        var animatedOverlayStyles = {
+          opacity: overlayOpacity,
+        };
+
+        var pointerEvents = drawerShown ? 'auto' : 'none';
         return _react2.default.createElement(
           _reactNative.View,
           _extends(
             {
-              style: { flex: 1, backgroundColor: 'transparent' },
+              style: {
+                flex: 1,
+                backgroundColor: 'transparent',
+              },
             },
             this._panResponder.panHandlers,
           ),
@@ -237,14 +259,14 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
             { style: styles.main },
             this.props.children,
           ),
-          drawerShown &&
-            _react2.default.createElement(
-              _reactNative.TouchableWithoutFeedback,
-              { onPress: this._onOverlayClick },
-              _react2.default.createElement(_reactNative.Animated.View, {
-                style: [styles.overlay, animatedOverlayStyles],
-              }),
-            ),
+          _react2.default.createElement(
+            _reactNative.TouchableWithoutFeedback,
+            { pointerEvents: pointerEvents, onPress: this._onOverlayClick },
+            _react2.default.createElement(_reactNative.Animated.View, {
+              pointerEvents: pointerEvents,
+              style: [styles.overlay, animatedOverlayStyles],
+            }),
+          ),
           _react2.default.createElement(
             _reactNative.Animated.View,
             {
@@ -278,10 +300,18 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
         var _this3 = this;
         this._emitStateChanged(SETTLING);
         _reactNative.Animated
-          .parallel([
-            this._animateDrawerPosition(1, options),
-            this._animateOverlayOpacity(0.7, options),
-          ])
+          .spring(
+            this.state.openValue,
+            _extends(
+              {
+                toValue: 1,
+                bounciness: 0,
+                restSpeedThreshold: 0.1,
+                useNativeDriver: true,
+              },
+              options,
+            ),
+          )
           .start(function() {
             if (_this3.props.onDrawerOpen) {
               _this3.props.onDrawerOpen();
@@ -296,56 +326,24 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
         var _this4 = this;
         this._emitStateChanged(SETTLING);
         _reactNative.Animated
-          .parallel([
-            this._animateDrawerPosition(0, options),
-            this._animateOverlayOpacity(0, options),
-          ])
+          .spring(
+            this.state.openValue,
+            _extends(
+              {
+                toValue: 0,
+                bounciness: 0,
+                restSpeedThreshold: 1,
+                useNativeDriver: true,
+              },
+              options,
+            ),
+          )
           .start(function() {
             if (_this4.props.onDrawerClose) {
               _this4.props.onDrawerClose();
             }
             _this4._emitStateChanged(IDLE);
           });
-      },
-    },
-    {
-      key: '_animateDrawerPosition',
-      value: function _animateDrawerPosition(toValue) {
-        var options = arguments.length > 1 && arguments[1] !== undefined
-          ? arguments[1]
-          : {};
-        return _reactNative.Animated.spring(
-          this.state.openValue,
-          _extends(
-            {
-              toValue: toValue,
-              bounciness: 0,
-              restSpeedThreshold: 0.1,
-              useNativeDriver: true,
-            },
-            options,
-          ),
-        );
-      },
-    },
-    {
-      key: '_animateOverlayOpacity',
-      value: function _animateOverlayOpacity(toValue) {
-        var options = arguments.length > 1 && arguments[1] !== undefined
-          ? arguments[1]
-          : {};
-        return _reactNative.Animated.spring(
-          this.state.overlayOpacityValue,
-          _extends(
-            {
-              toValue: toValue,
-              bounciness: 0,
-              restSpeedThreshold: 0.1,
-              useNativeDriver: true,
-            },
-            options,
-          ),
-        );
       },
     },
     {
@@ -457,13 +455,17 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
             vx >= VX_MAX ||
             (isWithinVelocityThreshold && previouslyOpen && moveX > THRESHOLD)
           ) {
-            this.openDrawer({ velocity: vx });
+            this.openDrawer({
+              velocity: vx,
+            });
           } else if (
             (vx < 0 && moveX < THRESHOLD) ||
             vx < -VX_MAX ||
             (isWithinVelocityThreshold && !previouslyOpen)
           ) {
-            this.closeDrawer({ velocity: vx });
+            this.closeDrawer({
+              velocity: vx,
+            });
           } else if (previouslyOpen) {
             this.openDrawer();
           } else {
@@ -477,13 +479,17 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
             vx <= -VX_MAX ||
             (isWithinVelocityThreshold && previouslyOpen && moveX < THRESHOLD)
           ) {
-            this.openDrawer({ velocity: (-1) * vx });
+            this.openDrawer({
+              velocity: (-1) * vx,
+            });
           } else if (
             (vx > 0 && moveX > THRESHOLD) ||
             vx > VX_MAX ||
             (isWithinVelocityThreshold && !previouslyOpen)
           ) {
-            this.closeDrawer({ velocity: (-1) * vx });
+            this.closeDrawer({
+              velocity: (-1) * vx,
+            });
           } else if (previouslyOpen) {
             this.openDrawer();
           } else {
@@ -559,18 +565,6 @@ var DrawerLayout = (_class = (_temp = _class2 = (function(_Component) {
   'closeDrawer',
   [_autobindDecorator2.default],
   Object.getOwnPropertyDescriptor(_class.prototype, 'closeDrawer'),
-  _class.prototype,
-), _applyDecoratedDescriptor(
-  _class.prototype,
-  '_animateDrawerPosition',
-  [_autobindDecorator2.default],
-  Object.getOwnPropertyDescriptor(_class.prototype, '_animateDrawerPosition'),
-  _class.prototype,
-), _applyDecoratedDescriptor(
-  _class.prototype,
-  '_animateOverlayOpacity',
-  [_autobindDecorator2.default],
-  Object.getOwnPropertyDescriptor(_class.prototype, '_animateOverlayOpacity'),
   _class.prototype,
 ), _applyDecoratedDescriptor(
   _class.prototype,
