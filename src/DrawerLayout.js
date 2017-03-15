@@ -183,6 +183,7 @@ export default class DrawerLayout extends Component {
         toValue: 1,
         bounciness: 0,
         restSpeedThreshold: 0.1,
+        useNativeDriver: true,
         ...options,
       })
       .start(() => {
@@ -199,6 +200,7 @@ export default class DrawerLayout extends Component {
         toValue: 0,
         bounciness: 0,
         restSpeedThreshold: 1,
+        useNativeDriver: true,
         ...options,
       })
       .start(() => {
