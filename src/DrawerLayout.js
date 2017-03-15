@@ -129,6 +129,7 @@ export default class DrawerLayout extends Component {
       inputRange: [0, 1],
       outputRange,
       extrapolate: 'clamp',
+      useNativeDrive: true,
     });
     const animatedDrawerStyles = {
       transform: [{ translateX: drawerTranslateX }],
@@ -139,6 +140,7 @@ export default class DrawerLayout extends Component {
       inputRange: [0, 1],
       outputRange: [0, 0.7],
       extrapolate: 'clamp',
+      useNativeDriver: true,
     });
     const animatedOverlayStyles = { opacity: overlayOpacity };
 
